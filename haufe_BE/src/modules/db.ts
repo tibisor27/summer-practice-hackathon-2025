@@ -33,6 +33,14 @@ const userSchema = new Schema({
         trim: true,
         maxLength: 50
     },
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
 })
 
 const contentSchema = new Schema({
@@ -64,9 +72,55 @@ const contentSchema = new Schema({
             message: 'Must be a valid GitHub URL'
         }
     },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+})
+
+const commentSchema = new Schema({
+    contentId: {
+        type: Schema.Types.ObjectId,
+        ref: "contents",
+        required: true
+    },
+    reviewerId: {
+        type: Schema.Types.ObjectId,
+        ref: "users",
+        required: true
+    },
+    comment: {
+        type: String,
+        required: true,
+        maxLength: 2000
+    },
+    type: {
+        type: String,
+        enum: ['suggestion', 'bug', 'improvement', 'approval', 'general'],
+        default: 'general'
+    },
+    priority: {
+        type: String,
+        enum: ['low', 'medium', 'high', 'critical'],
+        default: 'medium'
+    },
+    status: {
+        type: String,
+        enum: ['open', 'addressed', 'dismissed'],
+        default: 'open'
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
 })
 
 const UserModel = mongoose.model("users", userSchema);
 const ContentModel = mongoose.model("contents", contentSchema);
+const CommentModel = mongoose.model("comments", commentSchema);
 
-export {UserModel, ContentModel}
+export {UserModel, ContentModel, CommentModel}
