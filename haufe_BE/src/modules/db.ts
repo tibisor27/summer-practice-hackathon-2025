@@ -103,20 +103,7 @@ const commentSchema = new Schema({
         enum: ['suggestion', 'bug', 'improvement', 'approval', 'general'],
         default: 'general'
     },
-    priority: {
-        type: String,
-        enum: ['low', 'medium', 'high', 'critical'],
-        default: 'medium'
-    },
-    status: {
-        type: String,
-        enum: ['open', 'addressed', 'dismissed'],
-        default: 'open'
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+
 })
 
 const UserModel = mongoose.model("users", userSchema);

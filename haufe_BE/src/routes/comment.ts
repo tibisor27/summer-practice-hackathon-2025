@@ -8,15 +8,12 @@ export const commentRouter = express.Router();
 
 const createCommentSchema = zod.object({
     comment: zod.string().min(1).max(2000),
-    type: zod.enum(['suggestion', 'bug', 'improvement', 'approval', 'general']).optional(),
-    priority: zod.enum(['low', 'medium', 'high', 'critical']).optional()
+    type: zod.enum(['suggestion', 'bug', 'improvement', 'approval', 'general']).optional()
 });
 
 const updateCommentSchema = zod.object({
     comment: zod.string().min(1).max(2000).optional(),
-    type: zod.enum(['suggestion', 'bug', 'improvement', 'approval', 'general']).optional(),
-    priority: zod.enum(['low', 'medium', 'high', 'critical']).optional(),
-    status: zod.enum(['open', 'addressed', 'dismissed']).optional()
+    type: zod.enum(['suggestion', 'bug', 'improvement', 'approval', 'general']).optional()
 });
 
 // POST /api/v1/comment/:contentId - Adaugă comentariu la un proiect
@@ -50,14 +47,13 @@ commentRouter.post("/:contentId", authMiddleware, async (req: Request, res: Resp
             return;
         }
 
-        const { comment, type, priority } = parsed.data;
+        const { comment, type } = parsed.data;
 
         const newComment = await CommentModel.create({
             contentId,
             reviewerId,
             comment,
-            type: type || 'general',
-            priority: priority || 'medium'
+            type: type || 'general'
         });
 
         const populatedComment = await CommentModel.findById(newComment._id)
@@ -91,7 +87,7 @@ commentRouter.get("/:contentId", async (req: Request, res: Response) => {
 
         const comments = await CommentModel.find({ contentId })
             .populate('reviewerId', 'firstName lastName email')
-            .sort({ createdAt: -1 });
+            .sort({ _id: -1 }); // Sort by MongoDB _id (newest first)
 
         res.status(200).json({
             message: "Comments retrieved successfully",
@@ -206,33 +202,3 @@ commentRouter.delete("/:id", authMiddleware, async (req: Request, res: Response)
         });
     }
 });
-
-// GET /api/v1/comment/my/all - Vezi toate comentariile tale
-commentRouter.get("/my/all", authMiddleware, async (req: Request, res: Response) => {
-    try {
-        const reviewerId = (req as any).userId;
-
-        const comments = await CommentModel.find({ reviewerId })
-            .populate('contentId', 'title userId')
-            .populate({
-                path: 'contentId',
-                populate: {
-                    path: 'userId',
-                    select: 'firstName lastName email'
-                }
-            })
-            .sort({ createdAt: -1 });
-
-        res.status(200).json({
-            message: "Your comments retrieved successfully",
-            count: comments.length,
-            comments
-        });
-
-    } catch (err) {
-        console.error("Get my comments error:", err);
-        res.status(500).json({
-            message: "Internal server error"
-        });
-    }
-}); 
