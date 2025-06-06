@@ -20,6 +20,46 @@ export function useContent() {
         }
     }
 
+    async function deleteContent(contentId: string) {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.delete(`${BACKEND_URL}/api/v1/content/${contentId}`, {
+                headers: {
+                    "Authorization": token
+                }
+            });
+            // Refresh content after successful deletion
+            await refreshContent();
+            return { success: true };
+        } catch (error: any) {
+            console.error("Error deleting content:", error);
+            return { 
+                success: false, 
+                error: error.response?.data?.message || "Eroare la ștergerea proiectului" 
+            };
+        }
+    }
+
+    async function updateContent(contentId: string, updateData: any) {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.put(`${BACKEND_URL}/api/v1/content/${contentId}`, updateData, {
+                headers: {
+                    "Authorization": token,
+                    "Content-Type": "application/json"
+                }
+            });
+            // Refresh content after successful update
+            await refreshContent();
+            return { success: true, content: response.data.content };
+        } catch (error: any) {
+            console.error("Error updating content:", error);
+            return { 
+                success: false, 
+                error: error.response?.data?.message || "Eroare la actualizarea proiectului" 
+            };
+        }
+    }
 
     useEffect(() => {
         refreshContent();
@@ -28,5 +68,10 @@ export function useContent() {
         return () => clearInterval(interval);
     }, []);
 
-    return content; 
+    return { 
+        content, 
+        refreshContent, 
+        deleteContent, 
+        updateContent 
+    }; 
 }

@@ -5,6 +5,7 @@ import { BACKEND_URL } from '../config';
 import { useAuth } from '../hooks/useAuth';
 import { CommentItem } from '../components/CommentItem';
 import { AddComment } from '../components/AddComment';
+import { EditProjectModal } from '../components/EditProjectModal';
 
 interface Project {
     _id: string;
@@ -46,6 +47,8 @@ export const ProjectDetails = () => {
     const [isLoadingComments, setIsLoadingComments] = useState(true);
     const [isAddingComment, setIsAddingComment] = useState(false);
     const [error, setError] = useState<string>('');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
         if (!authLoading && isAuthenticated && projectId) {
@@ -160,6 +163,64 @@ export const ProjectDetails = () => {
         }
     };
 
+    const handleEditProject = () => {
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveEdit = async (projectId: string, updateData: any) => {
+        setIsUpdating(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put(`${BACKEND_URL}/api/v1/content/${projectId}`, updateData, {
+                headers: {
+                    'Authorization': token,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            // Refresh project after successful update
+            await fetchProject();
+            return { success: true };
+        } catch (error: any) {
+            console.error("Update project error:", error);
+            return { 
+                success: false, 
+                error: error.response?.data?.message || "Eroare la actualizarea proiectului" 
+            };
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleDeleteProject = async () => {
+        if (!window.confirm('Ești sigur că vrei să ștergi acest proiect? Această acțiune nu poate fi anulată.')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`${BACKEND_URL}/api/v1/content/${projectId}`, {
+                headers: {
+                    'Authorization': token
+                }
+            });
+            
+            // Redirect to dashboard after successful deletion
+            navigate('/dashboard');
+        } catch (error: any) {
+            console.error("Delete project error:", error);
+            if (error.response?.status === 401) {
+                logout();
+            } else {
+                setError("Eroare la ștergerea proiectului. Te rugăm să încerci din nou.");
+            }
+        }
+    };
+
+    const closeEditModal = () => {
+        setIsEditModalOpen(false);
+    };
+
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('ro-RO', {
             year: 'numeric',
@@ -205,6 +266,8 @@ export const ProjectDetails = () => {
         return null;
     }
 
+    const isOwner = user?.id === project.userId._id;
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
@@ -226,6 +289,28 @@ export const ProjectDetails = () => {
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
+                            {isOwner && (
+                                <>
+                                    <button
+                                        onClick={handleEditProject}
+                                        className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        <span>Editează</span>
+                                    </button>
+                                    <button
+                                        onClick={handleDeleteProject}
+                                        className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        <span>Șterge</span>
+                                    </button>
+                                </>
+                            )}
                             {project.githubUrl && (
                                 <a
                                     href={project.githubUrl}

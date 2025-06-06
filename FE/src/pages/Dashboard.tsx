@@ -4,6 +4,7 @@ import axios from 'axios';
 import { BACKEND_URL } from '../config';
 import { useAuth } from '../hooks/useAuth';
 import { ProjectCard } from '../components/ProjectCard';
+import { EditProjectModal } from '../components/EditProjectModal';
 
 interface Project {
     _id: string;
@@ -27,6 +28,9 @@ export const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
     const [filter, setFilter] = useState<'all' | 'my'>('all');
+    const [editProject, setEditProject] = useState<Project | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -69,6 +73,62 @@ export const Dashboard = () => {
 
     const handleCreateNew = () => {
         navigate('/create-project');
+    };
+
+    const handleEdit = (project: Project) => {
+        setEditProject(project);
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveEdit = async (projectId: string, updateData: any) => {
+        setIsUpdating(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put(`${BACKEND_URL}/api/v1/content/${projectId}`, updateData, {
+                headers: {
+                    'Authorization': token,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            // Refresh projects after successful update
+            await fetchProjects();
+            return { success: true };
+        } catch (error: any) {
+            console.error("Update project error:", error);
+            return { 
+                success: false, 
+                error: error.response?.data?.message || "Eroare la actualizarea proiectului" 
+            };
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleDelete = async (projectId: string) => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`${BACKEND_URL}/api/v1/content/${projectId}`, {
+                headers: {
+                    'Authorization': token
+                }
+            });
+            
+            // Refresh projects after successful deletion
+            await fetchProjects();
+        } catch (error: any) {
+            console.error("Delete project error:", error);
+            if (error.response?.status === 401) {
+                logout();
+            } else {
+                setError("Eroare la ștergerea proiectului. Te rugăm să încerci din nou.");
+            }
+        }
+    };
+
+    const closeEditModal = () => {
+        setIsEditModalOpen(false);
+        setEditProject(null);
     };
 
     if (authLoading) {
@@ -206,11 +266,23 @@ export const Dashboard = () => {
                                 key={project._id}
                                 project={project}
                                 onViewDetails={handleViewDetails}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                currentUserId={user?.id}
                             />
                         ))}
                     </div>
                 )}
             </div>
+
+            {/* Edit Project Modal */}
+            <EditProjectModal
+                project={editProject}
+                isOpen={isEditModalOpen}
+                onClose={closeEditModal}
+                onSave={handleSaveEdit}
+                isLoading={isUpdating}
+            />
         </div>
     );
 }; 
