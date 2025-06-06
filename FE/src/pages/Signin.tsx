@@ -44,8 +44,7 @@ export const Signin = () => {
             localStorage.setItem("userId", userId);
             localStorage.setItem("userEmail", userEmail);
 
-            // Show success message
-            alert(message || "Autentificare reușită!");
+            // Show success message and redirect
             navigate('/dashboard');
 
         } catch (error: any) {
@@ -78,53 +77,93 @@ export const Signin = () => {
         }
     };
 
-    return <div className="h-screen w-screen bg-slate-200 flex justify-center items-center">
-        <div className="bg-white rounded-xl min-w-96 p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-                Autentificare
-            </h2>
-            
-            {error && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                    {error}
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex justify-center items-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+                {/* Header */}
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                        Bun venit înapoi
+                    </h1>
+                    <p className="text-gray-600">
+                        Autentifică-te în contul tău
+                    </p>
                 </div>
-            )}
 
-            <div className="space-y-4">
-                <Input 
-                    reference={emailRef} 
-                    placeholder="Email" 
-                    onKeyPress={handleKeyPress}
-                />
-                <Input 
-                    reference={passwordRef} 
-                    placeholder="Parolă" 
-                    type="password"
-                    onKeyPress={handleKeyPress}
-                />
-            </div>
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                        <div className="flex items-center">
+                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {error}
+                        </div>
+                    </div>
+                )}
 
-            <div className="flex justify-center pt-6">
-                <Button 
-                    onClick={signin} 
-                    variant="primary" 
-                    text={isLoading ? "Se autentifică..." : "Autentificare"} 
-                    size="sm"
-                    disabled={isLoading}
-                />
-            </div>
+                {/* Form */}
+                <div className="space-y-5">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Email
+                        </label>
+                        <Input 
+                            reference={emailRef} 
+                            placeholder="adresa@email.com" 
+                            type="email"
+                            onKeyPress={handleKeyPress}
+                        />
+                    </div>
 
-            <div className="text-center mt-4">
-                <p className="text-gray-600">
-                    Nu ai cont?{" "}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Parolă
+                        </label>
+                        <Input 
+                            reference={passwordRef} 
+                            placeholder="Introdu parola" 
+                            type="password"
+                            onKeyPress={handleKeyPress}
+                        />
+                    </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="mt-8">
+                    <Button 
+                        onClick={signin} 
+                        variant="primary" 
+                        text={isLoading ? "Se autentifică..." : "Autentificare"} 
+                        size="lg"
+                        disabled={isLoading}
+                    />
+                </div>
+
+                {/* Sign Up Link */}
+                <div className="text-center mt-6">
+                    <p className="text-gray-600">
+                        Nu ai cont?{" "}
+                        <button 
+                            onClick={() => navigate('/signup')}
+                            className="text-purple-600 hover:text-purple-800 font-medium underline transition-colors"
+                            disabled={isLoading}
+                        >
+                            Înregistrează-te aici
+                        </button>
+                    </p>
+                </div>
+
+                {/* Forgot Password Link */}
+                <div className="text-center mt-4">
                     <button 
-                        onClick={() => navigate('/signup')}
-                        className="text-blue-600 hover:text-blue-800 underline"
+                        className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                        disabled={isLoading}
                     >
-                        Înregistrează-te aici
+                        Ai uitat parola?
                     </button>
-                </p>
+                </div>
             </div>
         </div>
-    </div>
+    );
 }

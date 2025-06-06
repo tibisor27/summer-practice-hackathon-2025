@@ -7,14 +7,14 @@ export function useContent() {
 
     async function refreshContent() {
         try {
-            const response = await axios.get(`${BACKEND_URL}/api/v1/content`, {
+            const response = await axios.get(`${BACKEND_URL}/api/v1/content/all`, {
                 headers: {
                     "Authorization": localStorage.getItem("token")
                 }
             });
             console.log(response)
             console.log("API response:", response.data); // Log pentru debugging
-            setContent(response.data);
+            setContent(response.data.contents || []);
         } catch (error) {
             console.error("Error fetching content:", error);
         }
