@@ -75,7 +75,7 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
         const token = jwt.sign(
             { userId },
             JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "2h" }
         );
 
         // Return success response

@@ -35,6 +35,38 @@ const userSchema = new Schema({
     },
 })
 
-const UserModel = mongoose.model("users", userSchema);
+const contentSchema = new Schema({
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: "users",
+        required: true
+    },
+    title: {
+        type: String,
+        required: true,
+        maxLength: 100
+    },
+    description: {
+        type: String,
+        required: true,
+        maxLength: 1000
+    },
+    codeContent: {
+        type: String, // For small code snippets
+        maxLength: 10000
+    },
+    githubUrl: {
+        type: String,
+        validate: {
+            validator: function(v: string) {
+                return !v || /^https:\/\/github\.com\//.test(v);
+            },
+            message: 'Must be a valid GitHub URL'
+        }
+    },
+})
 
-export {UserModel}
+const UserModel = mongoose.model("users", userSchema);
+const ContentModel = mongoose.model("contents", contentSchema);
+
+export {UserModel, ContentModel}
